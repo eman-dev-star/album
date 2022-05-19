@@ -24,11 +24,10 @@ class AlbumController extends Controller
 
     public function store(Request $request)
     {
-        // dd($request->all());
         $data=$request->validate([
             'namealbum'=>'required',
             'nameimage'=>'required',
-            // 'picture '=>'required'
+            'required|mimes:jpeg,png,jpg',
         ]);
         $nameone=$request->namealbum;
         if ($request->picture) {
@@ -36,28 +35,18 @@ class AlbumController extends Controller
             $name = Carbon::now()->toDateString();
             $nameImage = $name . " _ " . uniqid() . "." . $image->getClientOriginalExtension();
             $new='uploads/albums/'.$nameone;
-            // dd($new);
             $image->move($new,$nameImage);
-            // Image::make($request->picture)->resize(300, null, function ($constraint) {
-            //     $constraint->aspectRatio();
-            // })->save(public_path('uploads/albums/'.$request->namealbum.'/'.
-            //  $request->picture->hashName()));
         } //end of if
 
         $album=new Album();
         $album->name=$request->namealbum;
         $album->save();
-        // $id=City::latest()->first()->id;
         $id = DB::table('albums')->get()->last()->id;
-
-        // dd($id);
         Picture::create([
             'name'=>$request->nameimage,
             'picture'=>$nameImage,
             'album_id'=>$id,
         ]);
-
-        // }
         session()->flash('success','added successfuly');
         return redirect()->route('albums.index');
     }
@@ -68,24 +57,18 @@ class AlbumController extends Controller
 
     }
     public function addimage(Request $request){
-        // dd($request->all());
         $request->validate([
             'nameimage'=>'required',
             'image'=>'required'
         ]);
         $album=Album::where('id',$request->album_id)->first();
         $nameone=$album->name;
-        // dd($nameone);
         if ($request->image) {
             $image = $request->image;
             $name = Carbon::now()->toDateString();
             $nameImage = $name . " _ " . uniqid() . "." . $image->getClientOriginalExtension();
             $new='uploads/albums/'.$nameone;
-            // dd($new);
             $image->move($new,$nameImage);
-            // Image::make($request->image)->resize(300, null, function ($constraint) {
-            //     $constraint->aspectRatio();
-            // })->save(public_path('uploads/albums/' . $request->image->hashName()));
         } //end of if
         Picture::create([
             'name'=>$request->nameimage,
@@ -113,7 +96,6 @@ class AlbumController extends Controller
     public function allimage(Request $request)
     {
         $albums=Album::where('id',$request->id)->first();
-        // dd($albums);
         $pictures=Picture::where('album_id',$request->id)->get();
         return view('dashbord.albums.allimage',compact('pictures','albums'));
     }
@@ -122,8 +104,6 @@ class AlbumController extends Controller
         // dd($request->id);
         $id=$request->id;
         $albums=Album::all();
-        // $all=album::where('id',$id)->first();
-
         $picture=Picture::where('id',$id)->first();
         return view('dashbord.albums.editimage',compact('picture','albums'));
 
@@ -134,33 +114,21 @@ class AlbumController extends Controller
     {
         $data=$request->validate([
             'name'=>'required',
-            // 'picture'=>'required',
+             'picture'=>'required|mimes:jpeg,png,jpg',
             'album_id'=>'required',
         ]);
         $data=$request->except('picture');
-        // $name=$request->namealbum;
         $pic=Picture::where('id',$request->id)->first();
-        // dd($pic);
-        // $pic->update($data)
         if ($request->picture) {
-
-            // if ($pic->picture != 'album.png') {
-
-            //     Storage::disk('public_uploads')->delete('/uploads/albums/' . $pic->picture);
-
-            // }//end of if
             $name=$pic->album->name;
-            // dd($name);
             $image = $request->picture;
             $namedate = Carbon::now()->toDateString();
             $nameImage = $namedate . " _ " . uniqid() . "." . $image->getClientOriginalExtension();
             $new='uploads/albums/'.$name;
-            // dd($new);
             $image->move($new,$nameImage);
             $data['picture']=$nameImage;
         } //end of if
         $pic->update($data);
-        // dd($pic);
         session()->flash('success','edit successfuly');
         return redirect()->back();
     }
@@ -198,9 +166,7 @@ class AlbumController extends Controller
     public function anotheralbum(Request $request)
     {
         $album=Album::where('id',$request->id)->first();
-        // $picture=picture::where('album_id',$request->id)->first();
         $image=$album->Pictures();
-        // dd($album);
         $newdate = Carbon::now()->toDateString();
            foreach($album->Pictures as $photo)
            {
